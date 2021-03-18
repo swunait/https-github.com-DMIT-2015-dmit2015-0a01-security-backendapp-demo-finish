@@ -50,6 +50,19 @@
 
         <b:navbarLinks pull="right">
             <h:form style="display:inline" styleClass="form-inline">
+                <c:if test="#{empty request.userPrincipal}">
+                    <b:commandLink
+                            value="Login"
+                            action="/login" />
+                </c:if>
+                <c:if test="#{not empty request.userPrincipal}">
+                    <b:commandLink
+                            value="Logout #{request.userPrincipal.name}"
+                            action="#{logout.submit}" />
+                </c:if>
+            </h:form>
+
+            <h:form style="display:inline" styleClass="form-inline">
                 <b:selectOneMenu label="#{text['theme']}"
                                  value="#{theme.currentTheme}" style="width:180px;margin-top:8px"
                                  onchange="$('.theme-selector-button').click()">
