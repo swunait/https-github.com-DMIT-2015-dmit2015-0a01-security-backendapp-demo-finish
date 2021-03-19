@@ -12,6 +12,7 @@ public class MovieSecurityInterceptor {
     @Inject
     private Logger _logger;
 
+    @Inject
     private SecurityContext _securityContext;
 
     @AroundInvoke

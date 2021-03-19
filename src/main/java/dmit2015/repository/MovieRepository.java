@@ -1,22 +1,36 @@
 package dmit2015.repository;
 
 import dmit2015.entity.Movie;
+import dmit2015.security.MovieSecurityInterceptor;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.interceptor.Interceptors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.security.enterprise.SecurityContext;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
 @Transactional
+@Interceptors({MovieSecurityInterceptor.class})
 public class MovieRepository {
+
+    @Inject
+    private SecurityContext _securityContext;
 
     @PersistenceContext//(unitName = "h2database-jpa-pu")
     private EntityManager em;
 
     public void add(Movie newMovie) {
+        if (_securityContext.getCallerPrincipal() == null) {
+            throw new RuntimeException("Access denied. You must login before you can perform this operation.");
+        }
+        String username = _securityContext.getCallerPrincipal().getName();
+        newMovie.setUsername(username);
+
         em.persist(newMovie);
     }
 
@@ -62,10 +76,26 @@ public class MovieRepository {
     }
 
     public List<Movie> findAll() {
-        return em.createQuery(
-                "SELECT m FROM Movie m "
-                , Movie.class)
-                .getResultList();
+        if (_securityContext.getCallerPrincipal() == null) {
+            throw new RuntimeException("Access denied. You must login before you can perform this operation.");
+        }
+        List<Movie> queryResultList;
+        // Return all Movie if the role name is ADMIN or Administration
+        if (_securityContext.isCallerInRole("ADMIN") || _securityContext.isCallerInRole("Administration")) {
+            queryResultList = em.createQuery(
+                    "SELECT m FROM Movie m "
+                    , Movie.class)
+                    .getResultList();
+        } else {
+            queryResultList = em.createQuery(
+                    "SELECT m FROM Movie m WHERE m.username = :usernameValue "
+                    , Movie.class)
+                    .setParameter("usernameValue", _securityContext.getCallerPrincipal().getName())
+                    .getResultList();
+        }
+
+        return queryResultList;
+
     }
 
     public List<Movie> findAllOrderByTitle() {
