@@ -33,7 +33,7 @@
                              action="#{currentMovieEditController.onDelete}"
                              immediate="true"
                              onclick="return confirm('Are you sure you want to delete this item?')"
-                             update=":messages"
+                             ajax="false"
             />
             |
             <b:link id="backToListLink" outcome="index">

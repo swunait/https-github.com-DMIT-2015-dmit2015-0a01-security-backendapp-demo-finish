@@ -76,24 +76,21 @@ public class MovieRepository {
     }
 
     public List<Movie> findAll() {
-        if (_securityContext.getCallerPrincipal() == null) {
-            throw new RuntimeException("Access denied. You must login before you can perform this operation.");
-        }
         List<Movie> queryResultList;
-        // Return all Movie if the role name is ADMIN or Administration
-        if (_securityContext.isCallerInRole("ADMIN") || _securityContext.isCallerInRole("Administration")) {
-            queryResultList = em.createQuery(
+        // For the roles USER and Sales return only Movie associated with the current authenticated user
+        if (_securityContext.isCallerInRole("USER") || _securityContext.isCallerInRole("Sales") ) {
+            String username = _securityContext.getCallerPrincipal().getName();
+            queryResultList =  em.createQuery(
+                    "SELECT m FROM Movie m WHERE m.username = :usernameValue "
+                    , Movie.class)
+                    .setParameter("usernameValue", username)
+                    .getResultList();
+        } else {
+            queryResultList =  em.createQuery(
                     "SELECT m FROM Movie m "
                     , Movie.class)
                     .getResultList();
-        } else {
-            queryResultList = em.createQuery(
-                    "SELECT m FROM Movie m WHERE m.username = :usernameValue "
-                    , Movie.class)
-                    .setParameter("usernameValue", _securityContext.getCallerPrincipal().getName())
-                    .getResultList();
         }
-
         return queryResultList;
 
     }

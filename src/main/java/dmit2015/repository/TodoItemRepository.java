@@ -26,9 +26,6 @@ public class TodoItemRepository {
     private EntityManager em;
 
     public void add(TodoItem newTodoItem) {
-        if (_securityContext.getCallerPrincipal() == null) {
-            throw new RuntimeException("Access denied. You must login before you can perform this operation.");
-        }
         String username = _securityContext.getCallerPrincipal().getName();
         newTodoItem.setUsername(username);
 
@@ -69,9 +66,6 @@ public class TodoItemRepository {
     }
 
     public List<TodoItem> findAll() {
-        if (_securityContext.getCallerPrincipal() == null) {
-            throw new RuntimeException("Access denied. You must login before you can perform this operation.");
-        }
         List<TodoItem> queryResultList;
         // Return all TodoItem for the role ADMIN or Administration
         if (_securityContext.isCallerInRole("ADMIN") || _securityContext.isCallerInRole("Administration")) {
